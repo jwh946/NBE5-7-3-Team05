@@ -9,6 +9,7 @@ import io.powerrangers.backend.utils.REFRESH_TOKEN
 import io.powerrangers.backend.utils.createAccessCookie
 import io.powerrangers.backend.utils.deleteAccessCookie
 import io.powerrangers.backend.utils.deleteRefreshCookie
+import io.powerrangers.backend.utils.getCurrentUserId
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -36,12 +37,12 @@ class UserController(
 
     @GetMapping("/{userId}")
     fun getUserProfile(@PathVariable userId: Long): ResponseEntity<BaseResponse<UserGetProfileResponseDto>> {
-        return BaseResponse.success<UserGetProfileResponseDto>(HttpStatus.OK, userService.getUserProfile(userId))
+        return BaseResponse.success(HttpStatus.OK, userService.getUserProfile(userId))
     }
 
     @GetMapping
     fun searchUserProfile(@RequestParam nickname: String): ResponseEntity<BaseResponse<List<UserGetProfileResponseDto>>> {
-        return BaseResponse.success<List<UserGetProfileResponseDto>>(
+        return BaseResponse.success(
             HttpStatus.OK,
             userService.searchUserProfile(nickname)
         )
@@ -58,7 +59,7 @@ class UserController(
         @PathVariable userId: Long,
         @RequestParam date: LocalDate
     ): ResponseEntity<BaseResponse<List<TaskResponseDto>>> {
-        return BaseResponse.success<List<TaskResponseDto>>(
+        return BaseResponse.success(
             HttpStatus.OK,
             userService.getTasksByUser(userId, date)
         )
@@ -84,11 +85,11 @@ class UserController(
         val accessCookie = createAccessCookie(newAccessToken)
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-            .build<String>()
+            .build()
     }
 
     @GetMapping("/me")
-    fun getCurrentUserId(): ResponseEntity<BaseResponse<Long>> {
+    fun getMyId(): ResponseEntity<BaseResponse<Long>> {
         val userId = getCurrentUserId()
         return BaseResponse.success(HttpStatus.OK, userId)
     }
