@@ -36,7 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 src/main/resources/application.yml
-src/test/resources/application.yml
+src/test/resources/application-test.yml
+
+prometheus.yml
 
 *.tar
 .env
