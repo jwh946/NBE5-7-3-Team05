@@ -78,12 +78,11 @@ class TaskService(
     @Throws(IOException::class)
     fun uploadTaskImage(file: MultipartFile?, taskId: Long): String {
         validFile(file)
-        val imageUrl = s3Service.upload(file!!)
+        val key = s3Service.upload(file!!)
 
         val task = taskRepository.findByIdOrNull(taskId) ?: throw CustomException(ErrorCode.TASK_NOT_FOUND)
-        task.taskImage = imageUrl
-
-        return imageUrl
+        task.taskImage = key
+        return s3Service.generatePresignedUrl(key)
     }
 
     private fun validFile(file: MultipartFile?) {
@@ -97,7 +96,13 @@ class TaskService(
 
     fun getTaskImages(userId: Long): List<TaskImageResponseDto> {
         val tasks = getTasksByScope(userId)
-        return tasks.map { it.toTaskImageResponseDto() }
+
+        return tasks.map { task ->
+            val imageUrl = task.taskImage?.let { key ->
+                s3Service.generatePresignedUrl(key, 60)
+            }
+            task.toTaskImageResponseDto(imageUrl)
+        }
     }
 
     internal fun getTasksByScope(userId: Long): List<Task> {
@@ -115,9 +120,9 @@ class TaskService(
         val scope = followService.checkScopeWithUser(task.user.id!!)
 
         return when {
-            scope == TaskScope.PRIVATE -> task.toTaskResponseDto()
-            scope == TaskScope.FOLLOWERS && task.scope != TaskScope.PRIVATE -> task.toTaskResponseDto()
-            scope == TaskScope.PUBLIC && task.scope == TaskScope.PUBLIC -> task.toTaskResponseDto()
+            scope == TaskScope.PRIVATE -> task.toTaskResponseDto(s3Service)
+            scope == TaskScope.FOLLOWERS && task.scope != TaskScope.PRIVATE -> task.toTaskResponseDto(s3Service)
+            scope == TaskScope.PUBLIC && task.scope == TaskScope.PUBLIC -> task.toTaskResponseDto(s3Service)
             else -> throw CustomException(ErrorCode.NOT_ALLOWED)
         }
     }

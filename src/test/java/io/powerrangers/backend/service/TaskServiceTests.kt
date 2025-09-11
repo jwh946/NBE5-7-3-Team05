@@ -228,6 +228,7 @@ class TaskServiceTests {
         every { file.isEmpty } returns false
         every { file.contentType } returns "image/png"
         every { s3Service.upload(file) } returns "https://fakeurl.com/image.png"
+        every { s3Service.generatePresignedUrl("https://fakeurl.com/image.png", 5) } returns "https://fakeurl.com/image.png"
         every { taskRepository.findByIdOrNull(1L) } returns testTask
         every { getCurrentUserId() } returns 1L
 
