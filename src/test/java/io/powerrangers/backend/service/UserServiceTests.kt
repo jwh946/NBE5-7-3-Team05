@@ -98,7 +98,7 @@ class UserServiceUnitTests {
         ReflectionTestUtils.setField(user, "id", targetUserId)
 
         every { userRepository.findByIdOrNull(targetUserId) } returns user
-
+        every { s3Service.generatePresignedUrl(any(), any()) } returns "https://fakeurl.com/profile.png"
         // when
         val actualUser = userService.getUserProfile(targetUserId)
 
@@ -109,7 +109,7 @@ class UserServiceUnitTests {
         assertNotNull(actualUser)
         actualUser.userId shouldBe targetUserId
         actualUser.nickname shouldBe targetNickname
-        actualUser.profileImage shouldBe targetProfileImage
+        actualUser.profileImage shouldBe "https://fakeurl.com/profile.png"
         actualUser.intro shouldBe targetIntro
 
     }
@@ -147,6 +147,7 @@ class UserServiceUnitTests {
         )
 
         every { userRepository.findByNickname(targetNickname) } returns listOf(user)
+        every { s3Service.generatePresignedUrl(any(), any()) } returns "https://fakeurl.com/profile.png"
 
         // when
         ReflectionTestUtils.setField(user, "id", 1L)
@@ -155,7 +156,7 @@ class UserServiceUnitTests {
         // then
         result shouldHaveSize 1
         result.first().nickname shouldBe targetNickname
-
+        result.first().profileImage shouldBe "https://fakeurl.com/profile.png"
 
     }
 
@@ -176,6 +177,7 @@ class UserServiceUnitTests {
         )
 
         every { userRepository.findByNickname(targetNickname) } returns listOf(user)
+        every { s3Service.generatePresignedUrl(any(), any()) } returns "https://fakeurl.com/profile.png"
 
         // when
         ReflectionTestUtils.setField(user, "id", 1L)
@@ -184,6 +186,7 @@ class UserServiceUnitTests {
         // then
         result shouldHaveSize 1
         result.first().nickname shouldBe trimNickname
+        result.first().profileImage shouldBe "https://fakeurl.com/profile.png"
 
     }
 

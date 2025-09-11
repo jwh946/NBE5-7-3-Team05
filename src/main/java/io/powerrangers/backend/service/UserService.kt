@@ -40,20 +40,20 @@ class UserService(
     @Transactional(readOnly = true)
     fun getUserProfile(userId: Long): UserGetProfileResponseDto {
         val user = userRepository.findByIdOrNull(userId) ?: throw CustomException(ErrorCode.USER_NOT_FOUND)
-        return user.toProfileResponseDto()
+        return user.toProfileResponseDto(s3Service)
     }
 
     @Transactional(readOnly = true)
     fun getTasksByUser(userId: Long, date: LocalDate): List<TaskResponseDto> {
         return taskService.getTasksByScope(userId)
             .filter { it.dueDate.toLocalDate() == date }
-            .map { it.toTaskResponseDto() }
+            .map { it.toTaskResponseDto(s3Service) }
     }
 
     @Transactional(readOnly = true)
     fun searchUserProfile(nickname: String): List<UserGetProfileResponseDto> {
         val users = userRepository.findByNickname(nickname.trim())
-        return users.map { it.toProfileResponseDto() }
+        return users.map { it.toProfileResponseDto(s3Service) }
     }
 
     @Transactional

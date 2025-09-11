@@ -5,13 +5,22 @@ import io.powerrangers.backend.entity.Comment
 import io.powerrangers.backend.dto.*
 import io.powerrangers.backend.entity.Task
 import io.powerrangers.backend.entity.User
+import io.powerrangers.backend.service.S3Service
 
-fun User.toProfileResponseDto(): UserGetProfileResponseDto {
+fun User.toProfileResponseDto(s3Service: S3Service): UserGetProfileResponseDto {
+    val profileImageUrl = this.profileImage?.let { imageValue ->
+        if (imageValue.startsWith("http")) {
+            imageValue
+        } else {
+            s3Service.generatePresignedUrl(imageValue, 60)
+        }
+    }
+
     return UserGetProfileResponseDto(
         userId = this.id!!,
         nickname = this.nickname,
         intro = this.intro,
-        profileImage = this.profileImage
+        profileImage = profileImageUrl
     )
 }
 
@@ -35,23 +44,27 @@ fun User.toUserDetails(): UserDetails {
     )
 }
 
-fun Task.toTaskImageResponseDto(): TaskImageResponseDto {
+fun Task.toTaskImageResponseDto(presignedUrl: String?): TaskImageResponseDto {
     return TaskImageResponseDto(
         taskId = this.id!!,
-        imageUrl = this.taskImage,
+        imageUrl = presignedUrl,
         status = this.status,
         dueDate = this.dueDate
     )
 }
 
-fun Task.toTaskResponseDto(): TaskResponseDto {
+fun Task.toTaskResponseDto(s3Service: S3Service): TaskResponseDto {
+    val imageUrl = this.taskImage?.let { key ->
+        s3Service.generatePresignedUrl(key, 60)
+    }
+
     return TaskResponseDto(
         id = this.id!!,
         category = this.category,
         content = this.content,
         dueDate = this.dueDate,
         status = this.status,
-        taskImage = this.taskImage,
+        taskImage = imageUrl,
         scope = this.scope,
         nickname = this.user.nickname
     )
